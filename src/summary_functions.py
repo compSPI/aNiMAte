@@ -6,7 +6,6 @@ import torch
 import mcubes
 import mrcfile
 from utils import generate_rotmats_video, to_numpy
-from loss_functions import pairwise_cos_sim
 
 ''' Some utils '''
 
@@ -69,16 +68,6 @@ def write_summary(model, gt, model_output,
     rotmat_pred = model_output['rotmat']
     rot_err = visualize_rot(rotmat_gt, rotmat_pred, writer, total_steps, summary_prefix)
     writer.add_scalar(f'{summary_prefix}: pred_rot_mae (degree)', rot_err.mean(), global_step=total_steps)
-
-    ''' Visualize a latent code similarity '''
-    latent_pred = model_output['latent_code']
-    if latent_pred is not None and "val" not in summary_prefix:
-        fig = plt.figure(dpi=96)
-        plt.imshow(to_numpy(pairwise_cos_sim(latent_pred)), cmap='plasma',
-                   interpolation='nearest')
-        plt.colorbar()
-        plt.tight_layout()
-        writer.add_figure(f"{summary_prefix}: latent_cos_sim", fig, global_step=total_steps)
 
     ''' Visualize a single image '''
     proj_pred = normalize_proj(proj_pred)
