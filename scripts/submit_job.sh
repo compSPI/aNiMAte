@@ -3,6 +3,8 @@
 #SBATCH --job-name=cryonet-train
 #SBATCH --output=output-%j.txt --error=output-%j.txt
 #SBATCH --ntasks-per-node=1
+#SBATCH --nodes=1
+#SBATCH --gpus=a100:1
 #SBATCH --mem=128GB
 
 if [[ $1 == "" ]]; then

@@ -7,8 +7,8 @@
 #SBATCH --mem=256000
 
 if [ $# -ne 2 ]; then
-  echo "ERROR USAGE: $0 <config-path> <out-starfile-path>"
-  echo "You need to specify a train config.ini and a path for saving the dataset starfile"
+  echo "ERROR USAGE: $0 <config-path> <out-path>"
+  echo "You need to specify a train config.ini and a path for saving the dataset starfile and particle images"
   exit 1
 fi
 

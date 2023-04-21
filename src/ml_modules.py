@@ -168,7 +168,7 @@ class FCBlock(nn.Module):
 
     def __init__(self, in_features, features, out_features,
                  nonlinearity='relu', last_nonlinearity=None,
-                 batch_norm=False, equalized=False, dropout=False):
+                 batch_norm=False, dropout=False):
         super().__init__()
 
         # Create hidden features list
@@ -295,8 +295,7 @@ def conv3x3(in_planes, out_planes, stride=1, bias=True):
 
 
 class DoubleConvBlock(nn.Module):
-    def __init__(self, in_size, out_size, padding, batch_norm,
-                 equalized=False, dropout=False, attention=False):
+    def __init__(self, in_size, out_size, batch_norm, dropout=False, attention=False):
         super(DoubleConvBlock, self).__init__()
         self.batch_norm = batch_norm
         self.dropout = dropout
@@ -323,8 +322,7 @@ class DoubleConvBlock(nn.Module):
 
 
 class CNNEncoder(nn.Module):
-    def __init__(self, in_channels=1, feature_channels=[64, 64, 64],
-                 padding=True, batch_norm=True, max_pool=True, dropout=False):
+    def __init__(self, in_channels=1, feature_channels=[64, 64, 64], batch_norm=True, max_pool=True, dropout=False):
         super(CNNEncoder, self).__init__()
 
         self.in_channels = in_channels
@@ -343,8 +341,7 @@ class CNNEncoder(nn.Module):
 
         for channels in self.feature_channels:
             self.net.append(
-                DoubleConvBlock(prev_channels, channels,
-                                padding, batch_norm, dropout)
+                DoubleConvBlock(prev_channels, channels, batch_norm, dropout)
             )
             if self.max_pool:
                 self.net.append(

@@ -84,7 +84,6 @@ class CryoNet(nn.Module):
                                                features=config.regressor_orientation_layers[:-1],
                                                nonlinearity='relu', last_nonlinearity='relu',
                                                batch_norm=config.encoder_batch_norm,
-                                               equalized=config.encoder_lr_equalization,
                                                dropout=config.encoder_dropout)
             self.orientation_regressor = FCBlock(in_features=config.regressor_orientation_layers[-1],
                                                  out_features=self.orientation_dims,
@@ -92,7 +91,6 @@ class CryoNet(nn.Module):
                                                  nonlinearity='relu',
                                                  last_nonlinearity=self.last_nonlinearity,
                                                  batch_norm=config.encoder_batch_norm,
-                                                 equalized=config.encoder_lr_equalization,
                                                  dropout=config.encoder_dropout)
 
         if self.config.dynamic_model == 'nma':
@@ -101,7 +99,6 @@ class CryoNet(nn.Module):
                                                 features=config.regressor_conformation_layers,
                                                 nonlinearity='relu', last_nonlinearity=None,
                                                 batch_norm=config.encoder_batch_norm,
-                                                equalized=config.encoder_lr_equalization,
                                                 dropout=config.encoder_dropout)
 
         if self.config.shift_input == 'encoder':
@@ -110,7 +107,6 @@ class CryoNet(nn.Module):
                                          features=config.regressor_shift_layers,
                                          nonlinearity='relu', last_nonlinearity=None,
                                          batch_norm=config.encoder_batch_norm,
-                                         equalized=config.encoder_lr_equalization,
                                          dropout=config.encoder_dropout)
 
         ''' CTF model '''
@@ -240,13 +236,9 @@ class CryoNet(nn.Module):
         if config.encoder == "CNN":
             return CNNEncoder(in_channels=1,
                               feature_channels=config.encoder_conv_layers,
-                              padding=True,
                               batch_norm=config.encoder_batch_norm,
                               max_pool=config.encoder_max_pool,
-                              lr_equalization=config.encoder_lr_equalization,
-                              dropout=config.encoder_dropout,
-                              attention=config.encoder_attention,
-                              global_avg_pool=config.encoder_global_avg_pool)
+                              dropout=config.encoder_dropout)
         elif config.encoder == "EfficientNetV2":
             return EfficientNetV2Encoder(in_channels=1)
         elif config.encoder == "VAE":
