@@ -6,6 +6,7 @@ import torch
 import pykeops
 from pykeops.torch import LazyTensor
 
+
 class ContiguousBackward(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
@@ -15,7 +16,9 @@ class ContiguousBackward(torch.autograd.Function):
     def backward(ctx, grad_output):
         return grad_output.contiguous()
 
+
 contiguous_backward = ContiguousBackward.apply
+
 
 class Potential(torch.nn.Module):
     def __init__(self, sidelen, pixel_sz, log_dir, clean_pykeops=False):
@@ -52,11 +55,10 @@ class Potential(torch.nn.Module):
 
         atom_coords_2d = coords[..., :2].reshape(-1, 2).contiguous()
 
-        ax = torch.arange(-self.sidelen//2, ((self.sidelen - 1) // 2) + 1).float()
-        pix_coords_X,pix_coords_Y = torch.meshgrid(ax,ax)
-        pix_coords_2d = torch.stack([pix_coords_Y,pix_coords_X],dim=-1)\
-                             .repeat(batch_sz,1,1,1) \
-                             .reshape(-1,2).to(coords.device) * self.pixel_sz
+        ax = torch.arange(-self.sidelen // 2, ((self.sidelen - 1) // 2) + 1).float()
+        pix_coords_X, pix_coords_Y = torch.meshgrid(ax, ax)
+        pix_coords_2d = torch.stack([pix_coords_Y, pix_coords_X], dim=-1).repeat(batch_sz, 1, 1, 1).reshape(-1, 2).to(
+            coords.device) * self.pixel_sz
         potential = self.calculate_potential(batch_sz, n_atoms, atom_coords_2d, pix_coords_2d, ff_a, ff_b)
 
         return potential.reshape(batch_sz, 1, self.sidelen, self.sidelen)
@@ -67,11 +69,11 @@ class Potential(torch.nn.Module):
 
         ax = torch.arange(-self.sidelen // 2, ((self.sidelen - 1) // 2) + 1).float()
         pix_coords_X, pix_coords_Y, pix_coords_Z = torch.meshgrid(ax, ax, ax)
-        pix_coords_3d = torch.stack([pix_coords_Y, pix_coords_X, pix_coords_Z], dim=-1) \
-                            .repeat(batch_sz, 1, 1, 1) \
-                            .reshape(-1, 3).to(coords.device) * self.pixel_sz
+        pix_coords_3d = torch.stack([pix_coords_Y, pix_coords_X, pix_coords_Z], dim=-1).repeat(batch_sz, 1, 1,
+                                                                                               1).reshape(-1, 3).to(
+            coords.device) * self.pixel_sz
         potential = self.calculate_potential(batch_sz, n_atoms, coords, pix_coords_3d, ff_a, ff_b)
-        return potential.reshape(self.sidelen,self.sidelen,self.sidelen)
+        return potential.reshape(self.sidelen, self.sidelen, self.sidelen)
 
 
 class Potential_Full(torch.nn.Module):
@@ -112,9 +114,8 @@ class Potential_Full(torch.nn.Module):
                 dist = torch.cdist(sampled_block, atom_block_coords, p=2.0)
                 for k in range(a_block.shape[-1]):
                     exponent = torch.exp(-np.pi * invb_block[None, None, ..., k] * dist.pow(2))
-                    potential[:, j:pend_index] += torch.bmm(exponent,
-                                                            a_block[None, ..., k, None] *
-                                                            invb_block[None, ..., k, None])[..., 0]
+                    potential[:, j:pend_index] += \
+                        torch.bmm(exponent, a_block[None, ..., k, None] * invb_block[None, ..., k, None])[..., 0]
 
         potential = potential.reshape(batch_sz, 1, self.sidelen, self.sidelen)
 

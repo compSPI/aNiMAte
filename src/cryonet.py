@@ -12,9 +12,11 @@ from shift_utils import Shift
 from volume_utils import ExplicitAtomicVolume
 
 ''' CryoNet '''
+
+
 class CryoNet(nn.Module):
-    def __init__(self,config):
-        super(CryoNet,self).__init__()
+    def __init__(self, config):
+        super(CryoNet, self).__init__()
 
         self.config = config
         self.code_dim = 0
@@ -22,7 +24,7 @@ class CryoNet(nn.Module):
 
         self.atomic_model = AtomicModel(config.atomic_pdb, config.atomic_clean_pdb, config.atomic_center,
                                         pdb_out=os.path.join(config.root_dir, 'curated_gemmi.pdb'))
-        if config.dynamic_model=='nma':
+        if config.dynamic_model == 'nma':
             self.atomic_model = DynamicsModelNMA(self.atomic_model, atomic_clean_pdb=config.atomic_clean_pdb,
                                                  atomic_cg_selection=config.atomic_cg_selection,
                                                  atomic_nma_cutoff=config.atomic_nma_cutoff,
@@ -111,7 +113,6 @@ class CryoNet(nn.Module):
                                          equalized=config.encoder_lr_equalization,
                                          dropout=config.encoder_dropout)
 
-
         ''' CTF model '''
         self.ctf = CTF(size=config.ctf_size, resolution=config.resolution,
                        kV=config.kV, valueNyquist=config.ctf_valueNyquist, cs=config.spherical_abberation,
@@ -121,8 +122,8 @@ class CryoNet(nn.Module):
         self.shift = Shift(size=config.map_shape[0], resolution=config.resolution)
 
         if config.mask_2D_diam > 0:
-            d2 = config.map_shape[0]/2
-            x = y = np.linspace(-d2*config.resolution, d2*config.resolution, config.map_shape[0])
+            d2 = config.map_shape[0] / 2
+            x = y = np.linspace(-d2 * config.resolution, d2 * config.resolution, config.map_shape[0])
             X, Y = np.meshgrid(x, y)
             self.register_buffer(name='mask', tensor=torch.Tensor(np.sqrt(X ** 2 + Y ** 2) < config.mask_2D_diam / 2))
 
@@ -133,9 +134,9 @@ class CryoNet(nn.Module):
         # This is the projection from the simulator
         proj = in_dict['proj']
 
-        if  self.config.so3_parameterization == 'gt' and \
-            self.config.shift_input == 'gt' and \
-            self.config.dynamic_model != 'nma':
+        if self.config.so3_parameterization == 'gt' and \
+                self.config.shift_input == 'gt' and \
+                self.config.dynamic_model != 'nma':
             encoding = None
             latent_code = None
         else:
@@ -143,7 +144,7 @@ class CryoNet(nn.Module):
             latent_code = encoding['latent_code']
 
         # These are the eventual params of the ctf
-        ctf_params = {k: in_dict[k] for k in ('defocus_u','defocus_v','angleAstigmatism')
+        ctf_params = {k: in_dict[k] for k in ('defocus_u', 'defocus_v', 'angleAstigmatism')
                       if k in in_dict}
 
         ''' Encode the input through the CNN '''
@@ -177,7 +178,7 @@ class CryoNet(nn.Module):
                                                                              self.config.atomic_nma_number_modes)
         else:
             pred_nma_coords = torch.zeros(proj.shape[0],
-                                              1, self.config.atomic_nma_number_modes,
+                                          1, self.config.atomic_nma_number_modes,
                                           device=proj.device)
         if self.config.atomic_global_nma:
             global_nma = self.global_nma_coords.repeat(proj.shape[0], 1, 1)
@@ -197,8 +198,8 @@ class CryoNet(nn.Module):
         pred_proj = fourier_to_primal_2D(pred_fproj)
 
         if self.config.mask_2D_diam > 0:
-            masks =  self.shift(primal_to_fourier_2D(self.mask.repeat(pred_proj.shape[0], 1, 1)[:, None, :, :]),
-                                shift_params)
+            masks = self.shift(primal_to_fourier_2D(self.mask.repeat(pred_proj.shape[0], 1, 1)[:, None, :, :]),
+                               shift_params)
             masks = torch.abs(fourier_to_primal_2D(masks))
             pred_proj *= masks
         else:

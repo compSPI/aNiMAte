@@ -3,10 +3,12 @@ import torch
 import numpy as np
 from prody import *
 
+
 def build_hessian(model, cutoff, gamma):
     anm = ANM('object')
     anm.buildHessian(model, cutoff=cutoff, gamma=gamma)
     return anm
+
 
 def compute_prody_nma_base(model, n_modes, cutoff=15., gamma=1., use_pytorch=False):
     """
@@ -34,12 +36,13 @@ def compute_prody_nma_base(model, n_modes, cutoff=15., gamma=1., use_pytorch=Fal
     if use_pytorch:
         H = torch.from_numpy(anm.getHessian().astype(np.float32)).cuda()
         eigvals, eigvecs = torch.linalg.eigh(H)
-        eigvecs = eigvecs[:, 6:6+n_modes].detach().cpu().numpy()
-        eigvals = eigvals[6:6+n_modes].detach().cpu().numpy()
+        eigvecs = eigvecs[:, 6:6 + n_modes].detach().cpu().numpy()
+        eigvals = eigvals[6:6 + n_modes].detach().cpu().numpy()
         anm.setEigens(eigvecs, values=eigvals)
     else:
         anm.calcModes(n_modes=n_modes)
     return anm
+
 
 def compute_prody_nma(model, n_modes, cutoff=15., gamma=1., by_chain=False, use_pytorch=False):
     """
@@ -88,6 +91,7 @@ def compute_prody_nma(model, n_modes, cutoff=15., gamma=1., by_chain=False, use_
 
     return anm
 
+
 def extend_prody_nma(nma_small, model_small, model_extended):
     """
     Extend NMA from smaller (coarse-grained) to larger model.
@@ -109,6 +113,7 @@ def extend_prody_nma(nma_small, model_small, model_extended):
         atomic model, more detailed (nodes) than model_small
     """
     return extendModel(nma_small, model_small, model_extended)
+
 
 def read_prody_model(path):
     """
@@ -137,6 +142,7 @@ def read_prody_model(path):
         raise OSError("File could not be found.")
     return model
 
+
 def write_prody_model(path, model, msf=None):
     """
     Write ProDy model to PDB file.
@@ -157,6 +163,7 @@ def write_prody_model(path, model, msf=None):
         writePDB(path, model)
     else:
         raise ValueError("File format not recognized.")
+
 
 def write_nma_trajectory(path, model, eigvecs, n_mode=0, n_frames=20, rmsd=2):
     """
@@ -182,7 +189,7 @@ def write_nma_trajectory(path, model, eigvecs, n_mode=0, n_frames=20, rmsd=2):
 
     for i, t in enumerate(np.linspace(0, 1, n_frames)):
         prefac = rmsd * np.sin(2 * np.pi * t) * np.sqrt(model.numAtoms())
-        traj.addCoordset(coords + prefac * eigvecs[:,:,n_mode])
+        traj.addCoordset(coords + prefac * eigvecs[:, :, n_mode])
     write_prody_model(path, traj)
 
     return

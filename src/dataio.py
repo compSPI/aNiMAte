@@ -11,6 +11,7 @@ from ctf_utils import primal_to_fourier_2D, fourier_to_primal_2D
 from abc import ABCMeta, abstractmethod
 from pytorch3d.transforms import euler_angles_to_matrix, quaternion_to_matrix, rotation_6d_to_matrix
 
+
 class SimulatorBase(Dataset, metaclass=ABCMeta):
     def __init__(self, projection_sz, num_projs,
                  noise_generator=None, ctf_generator=None, shift_generator=None):
@@ -28,8 +29,8 @@ class SimulatorBase(Dataset, metaclass=ABCMeta):
         # Generate random CTF defocus values
         if ctf_generator is not None:
             self.ctf_defocus = np.random.lognormal(np.log(ctf_generator.defocus_mean),
-                                                     ctf_generator.defocus_stdev,
-                                                     num_projs)
+                                                   ctf_generator.defocus_stdev,
+                                                   num_projs)
 
         # Generate random CTF defocus values
         if shift_generator is not None:
@@ -116,6 +117,7 @@ class SimulatorBase(Dataset, metaclass=ABCMeta):
     def _simulate_projection(self, rotmat, idx):
         ...
 
+
 class RelionDataLoader(Dataset):
     def __init__(self, relion_path, relion_star_file, relion_invert_hand, atomic_nma_number_modes):
         self.relion_path = relion_path
@@ -132,8 +134,8 @@ class RelionDataLoader(Dataset):
     def get_df_optics_params(self):
         return self.df['optics']['rlnImageSize'][0], \
                self.df['optics']['rlnVoltage'][0], \
-               self.df['optics']['rlnImagePixelSize'][0],\
-               self.df['optics']['rlnSphericalAberration'][0],\
+               self.df['optics']['rlnImagePixelSize'][0], \
+               self.df['optics']['rlnSphericalAberration'][0], \
                self.df['optics']['rlnAmplitudeContrast'][0]
 
     def __len__(self):
@@ -162,10 +164,11 @@ class RelionDataLoader(Dataset):
         angleAstigmatism = torch.from_numpy(np.radians(np.array(particle['rlnDefocusAngle'], ndmin=2))).float()
 
         # Read relion "GT" orientations
-        relion_euler_np = np.radians(np.stack([-particle['rlnAnglePsi'],                                     # convert Relion to our convention
-                                               particle['rlnAngleTilt'] * (-1 if self.invert_hand else 1),   # convert Relion to our convention + invert hand
-                                               -particle['rlnAngleRot']]))                                   # convert Relion to our convention
-        rotmat = euler_angles_to_matrix(torch.from_numpy(relion_euler_np[np.newaxis,...]), convention='ZYZ')
+        relion_euler_np = np.radians(np.stack([-particle['rlnAnglePsi'],  # convert Relion to our convention
+                                               particle['rlnAngleTilt'] * (-1 if self.invert_hand else 1),
+                                               # convert Relion to our convention + invert hand
+                                               -particle['rlnAngleRot']]))  # convert Relion to our convention
+        rotmat = euler_angles_to_matrix(torch.from_numpy(relion_euler_np[np.newaxis, ...]), convention='ZYZ')
         rotmat = torch.squeeze(rotmat).float()
 
         # Read relion "GT" shifts
@@ -190,7 +193,7 @@ class RelionDataLoader(Dataset):
 
         if 'nmaAlphas' in particle:
             nmaAlphas = np.fromstring(particle['nmaAlphas'], sep=',')
-            gt_dict.update({'nma_alphas': torch.from_numpy(nmaAlphas[np.newaxis,:self.atomic_nma_number_modes]),
+            gt_dict.update({'nma_alphas': torch.from_numpy(nmaAlphas[np.newaxis, :self.atomic_nma_number_modes]),
                             'pdb_index': int(particle['pdbIndex'])})
 
         return in_dict, gt_dict

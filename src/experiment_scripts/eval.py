@@ -1,5 +1,6 @@
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
@@ -30,6 +31,7 @@ from starfile_utils import create_starfile
 def _noise_generator(config):
     return AWGNGenerator(snr=config.sim_awgn_snr)
 
+
 def _ctf_generator(config):
     config.ctf_size = config.map_shape[0]
     config.spherical_aberration = config.sim_ctf_spherical_abberations
@@ -39,15 +41,17 @@ def _ctf_generator(config):
                angleAstigmatism=config.sim_ctf_angle_astigmatism,
                cs=config.sim_ctf_spherical_abberations, requires_grad=False)
 
+
 def _filter_outliers(pred_nma_coords, sigma_num=3.0):
     filter_idx = []
     for i in range(pred_nma_coords.shape[-1]):
-        filter_idx.extend(np.where(abs(pred_nma_coords[...,i] - np.median(pred_nma_coords[...,i]))
-                           > sigma_num * pred_nma_coords[...,i].std())[0])
+        filter_idx.extend(np.where(abs(pred_nma_coords[..., i] - np.median(pred_nma_coords[..., i]))
+                                   > sigma_num * pred_nma_coords[..., i].std())[0])
     filter_idx = np.unique(np.array(filter_idx))
     if filter_idx.shape[0] == 0:
         return pred_nma_coords, None
     return np.delete(pred_nma_coords, filter_idx, 0), filter_idx
+
 
 def plot_nma(gt, pred, config):
     sim = False
@@ -81,8 +85,8 @@ def plot_nma(gt, pred, config):
         plt.legend()
         plt.savefig(os.path.join(config.eval_dir, f'pred_dist_nma{i + 1}.png'))
 
-def sample_latent(pred, config, dataset):
 
+def sample_latent(pred, config, dataset):
     def find_nearest(samples):
         return z[[np.argmin(np.linalg.norm(s - decomp, axis=-1)) for s in samples]]
 
@@ -118,7 +122,7 @@ def sample_latent(pred, config, dataset):
         s[:, jj] = decomp[si, jj]
         s = s[np.argsort(s[:, ii])]
         plt.scatter(s[:, ii], s[:, jj], c=np.arange(len(s)), marker='x', cmap='hsv')
-        plt.savefig(os.path.join(config.eval_dir, f'{config.latent_decomposition}_Ax{ii+1}_vs_Ax{jj+1}.png'))
+        plt.savefig(os.path.join(config.eval_dir, f'{config.latent_decomposition}_Ax{ii + 1}_vs_Ax{jj + 1}.png'))
         x = inverse(s)
 
         sampled_pred = torch.as_tensor(x, dtype=torch.float32)[:, None, :]
@@ -173,6 +177,7 @@ def sample_latent(pred, config, dataset):
             create_starfile(DataLoader(sub_dataset, shuffle=False, batch_size=config.val_chunk_sz),
                             config, root_dir, relative_mrcs_path_prefix, f'cluster_{c}')
 
+
 def main():
     parser = configargparse.ArgumentParser()
     parser.add_argument('-c', '--config', required=True, is_config_file=True,
@@ -191,7 +196,7 @@ def main():
                         default='PCA', help='Decomposition method to use for latent space visualization and sampling.')
     parser.add_argument('--latent_clustering', type=str, choices=['DBSCAN', 'KMeans', 'GMM'],
                         default='GMM', help='Clustering method to use for latent space.')
-    parser.add_argument('--sample_axes', type=int,  nargs='*', default=[0, 1],
+    parser.add_argument('--sample_axes', type=int, nargs='*', default=[0, 1],
                         help='Sampling predictions from decomposed latent space. '
                              'Default [0, 1] to sample axis 0 (eg PC1) and plot axis 0 vs axis 1 (eg PC1 vs PC2).')
     parser.add_argument('--sample_num', type=int, default=10,

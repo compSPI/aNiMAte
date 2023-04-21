@@ -2,6 +2,7 @@ import itertools
 import os
 import gemmi
 
+
 def read_gemmi_atoms(path, i_model=0, chains=None, clean=True, center=True, pdb_out=''):
     """
     Read atoms, separated by chain, from PDB or CIF file using Gemmi.
@@ -33,6 +34,7 @@ def read_gemmi_atoms(path, i_model=0, chains=None, clean=True, center=True, pdb_
     """
     model = read_gemmi_model(path, i_model=i_model, clean=clean, center=center, pdb_out=pdb_out)
     return extract_gemmi_atoms(model, chains=chains)
+
 
 def read_gemmi_model(path, i_model=0, clean=True, center=True, pdb_out=''):
     """
@@ -73,13 +75,14 @@ def read_gemmi_model(path, i_model=0, clean=True, center=True, pdb_out=''):
             raise ValueError("File format not recognized.")
     else:
         raise OSError("File could not be found.")
-    
+
     if center:
         center_gemmi_model(model)
     if pdb_out != '':
         write_gemmi_model(pdb_out, model)
-        
+
     return model
+
 
 def read_gemmi_model_from_pdb(path, i_model=0, clean=True):
     """
@@ -106,6 +109,7 @@ def read_gemmi_model_from_pdb(path, i_model=0, clean=True):
         structure = clean_gemmi_structure(structure)
     model = structure[i_model]
     return model
+
 
 def read_gemmi_model_from_cif(path, i_model=0, clean=True):
     """
@@ -137,6 +141,7 @@ def read_gemmi_model_from_cif(path, i_model=0, clean=True):
     model = gemmi.make_assembly(assembly, model, chain_naming)
     return model
 
+
 def clean_gemmi_structure(structure=None):
     """
     Clean Gemmi Structure, removing alternate conformations, hydrogens,
@@ -161,6 +166,7 @@ def clean_gemmi_structure(structure=None):
 
     return structure
 
+
 def center_gemmi_model(model):
     """
     Translates model so that its center of mass coincides with the origin.
@@ -171,9 +177,10 @@ def center_gemmi_model(model):
         Gemmi model
     """
     com = model.calculate_center_of_mass()
-    model.transform(gemmi.Transform(gemmi.Mat33(), # rotation matrix is identity
-                                    gemmi.Vec3(-1*com.x, -1*com.y, -1*com.z)))
+    model.transform(gemmi.Transform(gemmi.Mat33(),  # rotation matrix is identity
+                                    gemmi.Vec3(-1 * com.x, -1 * com.y, -1 * com.z)))
     return
+
 
 def write_gemmi_model(path, model=gemmi.Model("model")):
     """
@@ -200,6 +207,7 @@ def write_gemmi_model(path, model=gemmi.Model("model")):
         structure.make_mmcif_document().write_file(path)
     if is_pdb:
         structure.write_pdb(path)
+
 
 def extract_gemmi_atoms(model, chains=None, split_chains=False):
     """
@@ -228,11 +236,12 @@ def extract_gemmi_atoms(model, chains=None, split_chains=False):
     for ch in model:
         if ch.name in chains:
             atoms.append([at for res in ch for at in res])
-    
+
     if not split_chains:
         atoms = list(itertools.chain.from_iterable(atoms))
-        
+
     return atoms
+
 
 def extract_atomic_parameter(atoms, parameter_type, split_chains=False):
     """
@@ -256,7 +265,7 @@ def extract_atomic_parameter(atoms, parameter_type, split_chains=False):
     # if list of Gemmi atoms, convert into a list of list
     if type(atoms[0]) != list:
         atoms = [atoms]
-        
+
     if parameter_type == 'cartesian_coordinates':
         atomic_parameter = [at.pos.tolist() for ch in atoms for at in ch]
     elif parameter_type == 'form_factor_a':
@@ -266,10 +275,10 @@ def extract_atomic_parameter(atoms, parameter_type, split_chains=False):
     else:
         raise ValueError("Atomic parameter type not recognized.")
         return
-    
+
     # optionally preserve the list of lists (separated by chain) structure
     if split_chains:
         reshape = [0] + [len(ch) for ch in atoms]
-        atomic_parameter = [atomic_parameter[reshape[i]:reshape[i]+reshape[i+1]] for i in range(len(reshape)-1)]
-    
+        atomic_parameter = [atomic_parameter[reshape[i]:reshape[i] + reshape[i + 1]] for i in range(len(reshape) - 1)]
+
     return atomic_parameter

@@ -1,5 +1,6 @@
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import traceback
@@ -13,9 +14,11 @@ from utils import cond_mkdir
 from datasets import train_val_datasets
 from experiment import experiment
 
+
 class json_dict(dict):
     def __str__(self):
         return json.dumps(self)
+
 
 def init_config(parser):
     parser.add_argument('--data_loss', type=str, choices=['L2', 'CC'], default='L2',
@@ -104,7 +107,7 @@ def init_config(parser):
                         help='The parameterization of SO3 influences the interpretation of the output of the orientation regressor.')
     parser.add_argument('--so3_refinement', type=int, default=0,
                         help='A flag to refine per-particle orientations. Default 0')
-    
+
     parser.add_argument('--shift_input', type=str, default='gt',
                         choices=['gt', 'encoder'],
                         help='The source of shift parameters.')
@@ -172,6 +175,7 @@ def init_config(parser):
                         help='An identifier for the train run.')
     parser.add_argument('--log_dir', type=str, default='logs/',
                         help='Output directory for logging.')
+
 
 def main():
     parser = configargparse.ArgumentParser()

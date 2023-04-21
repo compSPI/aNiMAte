@@ -1,11 +1,13 @@
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dataio import RelionDataLoader, AtomicProjectionSimulator
 from ctf_utils import CTFIdentity, CTF
 from noise_utils import AWGNGenerator
 from shift_utils import Shift
+
 
 def train_val_datasets(config):
     noise = AWGNGenerator(snr=config.sim_awgn_snr)

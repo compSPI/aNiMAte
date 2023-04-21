@@ -6,19 +6,21 @@ import numpy as np
 import os
 from utils import cond_mkdir
 
+
 def dict2cuda(a_dict):
-   tmp = {}
-   for key, value in a_dict.items():
-       if isinstance(value,torch.Tensor):
-           tmp.update({key: value.cuda()})
-       else:
-           tmp.update({key: value})
-   return tmp
+    tmp = {}
+    for key, value in a_dict.items():
+        if isinstance(value, torch.Tensor):
+            tmp.update({key: value.cuda()})
+        else:
+            tmp.update({key: value})
+    return tmp
+
 
 def dict2cpu(a_dict):
     tmp = {}
     for key, value in a_dict.items():
-        if isinstance(value,torch.Tensor):
+        if isinstance(value, torch.Tensor):
             tmp.update({key: value.cpu()})
         elif isinstance(value, dict):
             tmp.update({key: dict2cpu(value)})
@@ -26,16 +28,17 @@ def dict2cpu(a_dict):
             tmp.update({key: value})
     return tmp
 
+
 def split_dict_with_tensors(model_input, gt, max_chunk_sz):
     # Chunking = we split tensors organizes in dictionnaries in smaller tensors
     # in dictionnaries of the same format.
     model_input_chunked = []
     for key in model_input:
-        chunks = torch.split(model_input[key], max_chunk_sz, dim=0) # split along the batch dimension
+        chunks = torch.split(model_input[key], max_chunk_sz, dim=0)  # split along the batch dimension
         model_input_chunked.append(chunks)
 
-    list_chunked_model_input = [{k:v for k,v in zip(model_input.keys(), curr_chunks)} \
-                                    for curr_chunks in zip(*model_input_chunked)]
+    list_chunked_model_input = [{k: v for k, v in zip(model_input.keys(), curr_chunks)} \
+                                for curr_chunks in zip(*model_input_chunked)]
 
     gt_chunked = []
     for key in gt:
@@ -43,14 +46,16 @@ def split_dict_with_tensors(model_input, gt, max_chunk_sz):
         gt_chunked.append(chunks)
 
     list_chunked_gt = [{k: v for k, v in zip(gt.keys(), curr_chunks)} \
-                                for curr_chunks in zip(*gt_chunked)]
+                       for curr_chunks in zip(*gt_chunked)]
 
     return list_chunked_model_input, list_chunked_gt
+
 
 def init_torch_dict(d):
     return {k: [v] for k, v in d.items()}
 
-def update_torch_dicts(d1 , d2):
+
+def update_torch_dicts(d1, d2):
     if d1 is None:
         return init_torch_dict(d2)
     else:
@@ -58,8 +63,10 @@ def update_torch_dicts(d1 , d2):
             d1[k].append(v)
         return d1
 
+
 def merge_torch_dict(d):
     return {k: torch.cat(d[k]) if d[k][0] is not None else None for k, _ in d.items()}
+
 
 def evaluate_model(model, dataloader, pbar=None, cpu_output=False):
     model.eval()
@@ -78,6 +85,7 @@ def evaluate_model(model, dataloader, pbar=None, cpu_output=False):
     model.train()
     return merge_torch_dict(val_gt), merge_torch_dict(val_input), merge_torch_dict(val_output)
 
+
 def change_phase(model, phase_name, lr):
     for param_name, param in model.named_parameters():
         param.requires_grad = False
@@ -86,6 +94,7 @@ def change_phase(model, phase_name, lr):
     optim = torch.optim.Adam(lr=lr, params=model.parameters(), amsgrad=True)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optim, gamma=0.9)
     return optim, scheduler
+
 
 def train(model, phases,
           train_dataloader, val_dataloader,
@@ -101,8 +110,7 @@ def train(model, phases,
           clip_grad=True,
           loss_schedules=None,
           chunk_lists_from_batch_fn=split_dict_with_tensors,
-          max_chunk_sz = 32):
-
+          max_chunk_sz=32):
     if os.path.exists(model_dir):
         pass
         # val = input("The model directory %s exists. Overwrite? (y/n)"%model_dir)
@@ -140,11 +148,11 @@ def train(model, phases,
             for step, (model_input, gt) in enumerate(train_dataloader):
                 start_time = time.time()
 
-                if (total_steps+1) % phases[phase_index]['end'] == 0 and\
-                        phase_index < len(phases)-1 and phases[phase_index]['end'] > 0:
+                if (total_steps + 1) % phases[phase_index]['end'] == 0 and \
+                        phase_index < len(phases) - 1 and phases[phase_index]['end'] > 0:
                     phase_index += 1
                     optim, scheduler = change_phase(model, phases[phase_index]['name'],
-                                                   lr * phases[phase_index]['lr_mult'])
+                                                    lr * phases[phase_index]['lr_mult'])
 
                 ''' Restart optimizer '''
                 optim.zero_grad()
@@ -158,7 +166,7 @@ def train(model, phases,
                 batch_avgd_losses = {}
                 batch_avgd_tot_loss = 0.
                 for chunk_idx, (chunked_model_input, chunked_gt) \
-                    in enumerate(zip(list_chunked_model_input, list_chunked_gt)):
+                        in enumerate(zip(list_chunked_model_input, list_chunked_gt)):
 
                     chunked_model_input = dict2cuda(chunked_model_input)
                     chunked_gt = dict2cuda(chunked_gt)
@@ -171,7 +179,7 @@ def train(model, phases,
                         single_loss = loss.mean()
 
                         if loss_schedules is not None and loss_name in loss_schedules:
-                            single_loss *= loss_schedules[loss_name](epoch,total_steps)
+                            single_loss *= loss_schedules[loss_name](epoch, total_steps)
 
                         train_loss += single_loss / num_chunks
                         batch_avgd_tot_loss += float(single_loss / num_chunks)
@@ -186,7 +194,8 @@ def train(model, phases,
                 for loss_name, loss in batch_avgd_losses.items():
                     writer.add_scalar(loss_name, loss, total_steps)
                     if loss_schedules is not None and loss_name in loss_schedules:
-                        writer.add_scalar(loss_name + "_weight", loss_schedules[loss_name](epoch,total_steps), total_steps)
+                        writer.add_scalar(loss_name + "_weight", loss_schedules[loss_name](epoch, total_steps),
+                                          total_steps)
                 train_losses.append(batch_avgd_tot_loss)
                 writer.add_scalar("total_train_loss", batch_avgd_tot_loss, total_steps)
 

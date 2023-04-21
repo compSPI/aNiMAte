@@ -4,6 +4,7 @@ import torch
 import math, os
 from nma_utils import NormalModeAnalysis
 
+
 class DynamicsModelNone(torch.nn.Module):
     def __init__(self, atomic_model):
         super(DynamicsModelNone, self).__init__()
@@ -17,7 +18,8 @@ class DynamicsModelNone(torch.nn.Module):
 
     def forward(self, nma_coordinates={}):
         coords, ff_a, ff_b = self.atomic_model()
-        return [coords.repeat(nma_coordinates.shape[0],1,1), ff_a, ff_b]
+        return [coords.repeat(nma_coordinates.shape[0], 1, 1), ff_a, ff_b]
+
 
 class DynamicsModelNMA(torch.nn.Module):
     def __init__(self, atomic_model, atomic_clean_pdb, atomic_cg_selection='protein and name CA',
@@ -34,11 +36,11 @@ class DynamicsModelNMA(torch.nn.Module):
                                      atomic_nma_cutoff,
                                      atomic_nma_gamma,
                                      atomic_nma_number_modes,
-                                     log_dir = log_dir,
-                                     by_chain = by_chain,
-                                     clean_pykeops = True)
+                                     log_dir=log_dir,
+                                     by_chain=by_chain,
+                                     clean_pykeops=True)
             self.register_buffer('eigvecs', torch.Tensor(nma.eigvecs).float())
-            self.register_buffer('eigvals',torch.Tensor(nma.eigvals).float())
+            self.register_buffer('eigvals', torch.Tensor(nma.eigvals).float())
             self.register_buffer('n_atoms_per_chain', torch.Tensor(nma.n_atoms_per_chain).int())
             self.n_chains = len(nma.n_atoms_per_chain)
             torch.save({'eigvecs': self.eigvecs,
@@ -47,7 +49,7 @@ class DynamicsModelNMA(torch.nn.Module):
                         'n_chains': self.n_chains}, os.path.join(log_dir, 'nma_buffers.pt'))
         else:
             buffers_dict = torch.load(atomic_nma_pkl)
-            self.register_buffer('eigvecs', buffers_dict['eigvecs']) # <- [num_atoms, 3, num_modes]
+            self.register_buffer('eigvecs', buffers_dict['eigvecs'])  # <- [num_atoms, 3, num_modes]
             self.register_buffer('eigvals', buffers_dict['eigvals'])
             self.register_buffer('n_atoms_per_chain', buffers_dict['n_atoms_per_chain'])
             self.n_chains = buffers_dict['n_chains']
@@ -60,7 +62,7 @@ class DynamicsModelNMA(torch.nn.Module):
 
     def _measure_rmsd(self, nma_coordinates):
         """Measure the Root-Mean Square Deviation between the current and reference model (in Angstrom)."""
-        natoms = nma_coordinates.size(0)/3.
+        natoms = nma_coordinates.size(0) / 3.
         return torch.sqrt(torch.sum(torch.square(nma_coordinates)) / natoms)
 
     def forward(self, nma_coordinates={}):
@@ -79,14 +81,16 @@ class DynamicsModelNMA(torch.nn.Module):
         batch_sz = nma_coordinates.shape[0]
         num_atoms, num_dims, num_modes = self.eigvecs.shape[-3:]
 
-        eigvecs = self.eigvecs.repeat(batch_sz,1,1,1)
+        eigvecs = self.eigvecs.repeat(batch_sz, 1, 1, 1)
 
         nma_coordinates_scaled = nma_coordinates * math.sqrt(num_atoms / num_modes)
-        nma_coordinates_scaled = torch.repeat_interleave(nma_coordinates_scaled[:,:,None,:],
-                                                         self.n_atoms_per_chain, axis=1) # [batch_sz,n_chains,num_modes] -> [batch_sz,num_atoms,1,num_modes]
+        nma_coordinates_scaled = torch.repeat_interleave(nma_coordinates_scaled[:, :, None, :],
+                                                         self.n_atoms_per_chain,
+                                                         axis=1)  # [batch_sz,n_chains,num_modes] -> [batch_sz,num_atoms,1,num_modes]
         delta_coords = \
-            torch.bmm(eigvecs.reshape(-1,num_dims,num_modes), # [batch_sz*num_atoms,3,num_modes]
-                      nma_coordinates_scaled.reshape(-1,1,num_modes).permute(0,2,1))  # [batch_sz*num_atoms,1,num_modes]
+            torch.bmm(eigvecs.reshape(-1, num_dims, num_modes),  # [batch_sz*num_atoms,3,num_modes]
+                      nma_coordinates_scaled.reshape(-1, 1, num_modes).permute(0, 2,
+                                                                               1))  # [batch_sz*num_atoms,1,num_modes]
         delta_coords = delta_coords.reshape(batch_sz, num_atoms, num_dims)
 
         coords, ff_a, ff_b = self.atomic_model()

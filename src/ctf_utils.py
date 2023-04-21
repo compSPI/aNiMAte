@@ -4,13 +4,16 @@ import numpy as np
 
 from utils import to_numpy
 
+
 def primal_to_fourier_2D(r):
     r = torch.fft.fftshift(r, dim=(-2, -1))
     return torch.fft.ifftshift(torch.fft.fftn(r, s=(r.shape[-2], r.shape[-1]), dim=(-2, -1)), dim=(-2, -1))
 
+
 def fourier_to_primal_2D(f):
     f = torch.fft.ifftshift(f, dim=(-2, -1))
     return torch.fft.fftshift(torch.fft.ifftn(f, s=(f.shape[-2], f.shape[-1]), dim=(-2, -1)), dim=(-2, -1))
+
 
 class CTFIdentity(nn.Module):
     def __init__(self):
@@ -18,6 +21,7 @@ class CTFIdentity(nn.Module):
 
     def forward(self, x_fourier, idcs=0, ctf_params={}):
         return x_fourier
+
 
 class CTF(nn.Module):
     def __init__(self, size=257, resolution=0.8, downsampling=1,
@@ -67,11 +71,11 @@ class CTF(nn.Module):
     def get_psf(self):
         hFourier = self.get_ctf()
         hSpatial = torch.fft.fftshift(
-                        torch.fft.ifftn(
-                            torch.fft.ifftshift(hFourier,
-                                                dim=(-2,-1)),
-                                        s=(hFourier.shape[-2],hFourier.shape[-1]),
-                                        dim=(-2,-1))) # is complex
+            torch.fft.ifftn(
+                torch.fft.ifftshift(hFourier,
+                                    dim=(-2, -1)),
+                s=(hFourier.shape[-2], hFourier.shape[-1]),
+                dim=(-2, -1)))  # is complex
         return hSpatial
 
     def get_ctf(self, ctf_params):
@@ -80,7 +84,7 @@ class CTF(nn.Module):
         angleAstigmatism = ctf_params['angleAstigmatism']
 
         elliptical = defocus_v * self.r2 + (defocus_u - defocus_v) * self.r2 * \
-                     torch.cos(self.angleFrequency - angleAstigmatism)**2
+                     torch.cos(self.angleFrequency - angleAstigmatism) ** 2
         defocusContribution = np.pi * self.wavelength * 1e4 * elliptical * self.frequency ** 2
         abberationContribution = -np.pi / 2.0 * self.cs * (self.wavelength ** 3) * \
                                  1e7 * self.frequency ** 4 * self.r2 ** 2
@@ -102,7 +106,7 @@ class CTF(nn.Module):
 
     def forward(self, x_fourier, ctf_params):
         hFourier = self.get_ctf(ctf_params)
-        return x_fourier * hFourier[:,None,:,:]
+        return x_fourier * hFourier[:, None, :, :]
 
 
 if __name__ == "__main__":
@@ -118,4 +122,3 @@ if __name__ == "__main__":
         axp1.imshow(to_numpy(psf[i, :, :].real))
         axp2.imshow(to_numpy(ctf[i, :, :]))
         plt.show()
-

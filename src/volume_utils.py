@@ -4,6 +4,7 @@ from pot_utils import Potential
 
 ''' Volumes '''
 
+
 class ExplicitAtomicVolume(torch.nn.Module):
     def __init__(self, atomic_model, sidelen, pixel_size, log_dir):
         super(ExplicitAtomicVolume, self).__init__()
@@ -19,15 +20,15 @@ class ExplicitAtomicVolume(torch.nn.Module):
         deformed_coords, ff_a, ff_b = self.atomic_model(nma_coords)
 
         if 'global_rotmat' in global_pose and 'global_shift' in global_pose:
-            t = Transform3d(device=deformed_coords.device).\
-                compose(Rotate(global_pose['global_rotmat'], device=deformed_coords.device)).\
+            t = Transform3d(device=deformed_coords.device). \
+                compose(Rotate(global_pose['global_rotmat'], device=deformed_coords.device)). \
                 translate(global_pose['global_shift'])
             deformed_coords = t.transform_points(deformed_coords)
 
         t = Rotate(rotmat, device=deformed_coords.device)
-        rotated_coords = t.inverse().transform_points(deformed_coords) # rotation of atoms is the reverse of the grid
+        rotated_coords = t.inverse().transform_points(deformed_coords)  # rotation of atoms is the reverse of the grid
 
-        potential_2d =  self.potential(rotated_coords, ff_a, ff_b)
+        potential_2d = self.potential(rotated_coords, ff_a, ff_b)
         return potential_2d
 
     def make_volume(self):

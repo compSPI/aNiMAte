@@ -1,5 +1,6 @@
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from torch.utils.data import DataLoader
@@ -14,12 +15,14 @@ from training_chunks import train
 from loss_functions import complex_proj_l2_loss, complex_proj_cc_loss
 from summary_functions import write_summary
 
+
 class DistDataParallelWrapper(DistributedDataParallel):
     def __getattr__(self, name):
         try:
             return super().__getattr__(name)
         except AttributeError:
             return getattr(self.module, name)
+
 
 def experiment(config, train_dataset, val_dataset):
     sampler = DistributedSampler(train_dataset, shuffle=True) if dist.is_initialized() else None
@@ -30,13 +33,13 @@ def experiment(config, train_dataset, val_dataset):
 
     if val_dataset:
         val_dataloader = DataLoader(val_dataset,
-                                shuffle=False, batch_size=config.val_chunk_sz,
-                                pin_memory=True, num_workers=config.train_num_workers)
+                                    shuffle=False, batch_size=config.val_chunk_sz,
+                                    pin_memory=True, num_workers=config.train_num_workers)
     else:
         val_dataloader = None
 
     cryonet = CryoNet(config)
-    torch.cuda.set_device(config.local_rank) 
+    torch.cuda.set_device(config.local_rank)
     cryonet.to(torch.cuda.current_device())
     if config.world_size > 1:
         cryonet = DistDataParallelWrapper(cryonet, find_unused_parameters=True,

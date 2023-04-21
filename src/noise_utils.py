@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 
+
 class AWGNGenerator(nn.Module):
     def __init__(self, snr):
         super(AWGNGenerator, self).__init__()

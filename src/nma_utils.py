@@ -28,7 +28,7 @@ class NormalModeAnalysis:
         self.nma_cutoff = atomic_nma_cutoff  # interatomic threshold distance in Angstroms
         self.nma_gamma = atomic_nma_gamma  # spring constant for computing NMA
         self.by_chain = by_chain  # if True, treat chains separately
-        self.use_pykeops = use_pykeops # if True, use pykeops when possible
+        self.use_pykeops = use_pykeops  # if True, use pykeops when possible
         self.use_pytorch = use_pytorch
 
         self.atoms = read_prody_model(atomic_model_filepath)
@@ -143,7 +143,7 @@ class NormalModeAnalysis:
                     if self.use_pykeops:
                         x = LazyTensor(pos_i[indices_sel_missing, None, :])
                         y = LazyTensor(pos_i[None, indices_sel_present, :])
-                        weights = 1. / (((x - y) ** 2).sum(dim=-1))**2
+                        weights = 1. / (((x - y) ** 2).sum(dim=-1)) ** 2
                         mult = weights @ V_all[indices_sel_present, :, nm]
                         norm = weights.sum(dim=1)
                     else:
@@ -171,8 +171,7 @@ class NormalModeAnalysis:
         S = np.matmul(Q, np.diag(1. / self.eigvals))
         U, s, _ = np.linalg.svd(S, full_matrices=False)
         self.eigvecs = U.reshape(self.atoms.numAtoms(), 3, self.nma_n_modes)
-        self.eigvals = 1./(s + np.finfo(float).eps)
-
+        self.eigvals = 1. / (s + np.finfo(float).eps)
 
     def build_nma(self):
         """
@@ -257,4 +256,3 @@ def visualize_nma(nma, out_path, rmsd=5.):
                       msf=1.0 / msf_initial.mean() * msf_initial)
 
     return
-

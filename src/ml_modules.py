@@ -106,6 +106,7 @@ class RandSine(nn.Module):
         # See paper sec. 3.2, final paragraph, and supplement Sec. 1.5 for discussion of factor 30
         return torch.sin(self.w0 * input)
 
+
 class MSoftplus(nn.Module):
     def __init__(self):
         super().__init__()
@@ -133,7 +134,10 @@ class ReQLU(nn.Module):
         r_input = torch.relu(input)
         return self.p_sq * (torch.sqrt(1. + r_input ** 2 / self.p_sq) - 1.)
 
+
 ''' FCNet'''
+
+
 def layer_factory(layer_type):
     layer_dict = \
         {'relu': (nn.ReLU(inplace=True), init_weights_normal),
@@ -208,7 +212,10 @@ class FCBlock(nn.Module):
         output = self.net(coords)
         return output
 
+
 ''' PE '''
+
+
 class PositionalEncoding(nn.Module):  # MetaModule):
     def __init__(self, num_encoding_functions=6, include_input=True, log_sampling=True, normalize=False,
                  input_dim=3, gaussian_pe=False, gaussian_variance=38):
@@ -277,12 +284,15 @@ class PositionalEncoding(nn.Module):  # MetaModule):
         else:
             return torch.cat(encoding, dim=-1)
 
+
 ''' CNNs '''
+
 
 def conv3x3(in_planes, out_planes, stride=1, bias=True):
     """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=bias)
+
 
 class DoubleConvBlock(nn.Module):
     def __init__(self, in_size, out_size, padding, batch_norm,
@@ -298,7 +308,7 @@ class DoubleConvBlock(nn.Module):
         if dropout:
             self.drop = nn.Dropout(p=0.2)
         if batch_norm:
-            self.bn = nn.InstanceNorm2d(out_size, affine=True) #nn.BatchNorm2d(out_size)
+            self.bn = nn.InstanceNorm2d(out_size, affine=True)  # nn.BatchNorm2d(out_size)
 
     def forward(self, x):
         out = self.conv1(x)
@@ -311,18 +321,19 @@ class DoubleConvBlock(nn.Module):
 
         return out
 
+
 class CNNEncoder(nn.Module):
-    def __init__(self, in_channels=1, feature_channels=[64,64,64],
+    def __init__(self, in_channels=1, feature_channels=[64, 64, 64],
                  padding=True, batch_norm=True, max_pool=True, dropout=False):
-        super(CNNEncoder,self).__init__()
+        super(CNNEncoder, self).__init__()
 
         self.in_channels = in_channels
         self.depth = len(feature_channels)
         self.max_pool = max_pool
         self.feature_channels = feature_channels
 
-        assert(len(feature_channels)>0,
-               'Error CNNEncoder must have at least 1 conv layer')
+        assert (len(feature_channels) > 0,
+                'Error CNNEncoder must have at least 1 conv layer')
 
         print(f"feature_channels={feature_channels}")
 
@@ -343,8 +354,8 @@ class CNNEncoder(nn.Module):
 
         self.net = nn.Sequential(*self.net)
 
-    def get_out_shape(self,h,w):
-        out = self.forward(torch.rand(1,self.in_channels,h,w))
+    def get_out_shape(self, h, w):
+        out = self.forward(torch.rand(1, self.in_channels, h, w))
         return out['latent_code'].shape[1]
 
     def forward(self, input):
@@ -353,21 +364,22 @@ class CNNEncoder(nn.Module):
         z = torch.flatten(out, start_dim=1)
         return {'latent_code': z}
 
+
 class EfficientNetV2Encoder(nn.Module):
-    def __init__(self, in_channels = 1):
-        super(EfficientNetV2Encoder,self).__init__()
+    def __init__(self, in_channels=1):
+        super(EfficientNetV2Encoder, self).__init__()
         self.in_channels = in_channels
         self.net = nn.Sequential(list(efficientnet_v2_s().children())[0])
         org_input_layer = self.net[0][0][0]
         self.net[0][0][0] = nn.Conv2d(in_channels,
                                       org_input_layer.out_channels,
-                                        kernel_size=org_input_layer.kernel_size,
-                                        stride=org_input_layer.stride,
-                                        padding=org_input_layer.padding,
-                                        bias=org_input_layer.bias)
+                                      kernel_size=org_input_layer.kernel_size,
+                                      stride=org_input_layer.stride,
+                                      padding=org_input_layer.padding,
+                                      bias=org_input_layer.bias)
 
-    def get_out_shape(self,h,w):
-        out = self.forward(torch.rand(1,self.in_channels,h,w))
+    def get_out_shape(self, h, w):
+        out = self.forward(torch.rand(1, self.in_channels, h, w))
         return out['latent_code'].shape[1]
 
     def forward(self, input):
@@ -378,10 +390,10 @@ class EfficientNetV2Encoder(nn.Module):
 
 class VAEEncoder(nn.Module):
     def __init__(self,
-                 in_channels = 1,
-                 latent_dim = 1024,
-                 hidden_dims = [32, 64, 128, 256, 512],
-                 in_dims = [128, 128]):
+                 in_channels=1,
+                 latent_dim=1024,
+                 hidden_dims=[32, 64, 128, 256, 512],
+                 in_dims=[128, 128]):
         super(VAEEncoder, self).__init__()
         self.in_channels = in_channels
         self.latent_dim = latent_dim
@@ -391,7 +403,7 @@ class VAEEncoder(nn.Module):
         for h_dim in hidden_dims:
             modules.append(nn.Sequential
                            (nn.Conv2d(in_channels, out_channels=h_dim,
-                              kernel_size=3, stride=2, padding=1),
+                                      kernel_size=3, stride=2, padding=1),
                             nn.BatchNorm2d(h_dim),
                             nn.LeakyReLU())
                            )
@@ -402,7 +414,6 @@ class VAEEncoder(nn.Module):
         out_dims = torch.flatten(self.encoder(dummy_input), start_dim=1).shape[1]
         self.fc_mu = nn.Linear(out_dims, latent_dim)
         self.fc_var = nn.Linear(out_dims, latent_dim)
-
 
     def encode(self, input):
         """
@@ -438,6 +449,6 @@ class VAEEncoder(nn.Module):
     def forward(self, input):
         mu, log_var = self.encode(input)
         z = self.reparameterize(mu, log_var)
-        return  {'latent_code': z,
-                 'latent_mu': mu,
-                 'latent_logvar': log_var}
+        return {'latent_code': z,
+                'latent_mu': mu,
+                'latent_logvar': log_var}

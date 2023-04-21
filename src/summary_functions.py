@@ -32,7 +32,7 @@ def visualize_rot(rotmat_gt, rotmat_pred, writer, global_step, summary_prefix):
                             color_pred.repeat(rotmat_gt.shape[0], 1)), dim=0)
 
     video_rots, err = generate_rotmats_video(rotmat_gt, rotmat_pred,
-                                        all_colors)
+                                             all_colors)
     writer.add_video(f"{summary_prefix}: Rotations", video_rots[None, ...], global_step=global_step, fps=25)
     return err
 
@@ -142,7 +142,7 @@ def write_summary(model, gt, model_output,
                                         label='prediction')
                         axs[xj].plot(gt_nma_coords[:, xj, xi], gt_nma_coords[:, xj, xi], color='r', label="perfect")
                         axs[xj].set_aspect(1.0)
-                        if xi == 0 and xj == n_chains-1: axs[xj].legend(bbox_to_anchor=(1.1, 0.8))
+                        if xi == 0 and xj == n_chains - 1: axs[xj].legend(bbox_to_anchor=(1.1, 0.8))
                         if xj == 0: axs[xj].set_ylabel(f"NMA Mode {xi}")
                         if xi == n_modes - 1: axs[xj].set_xlabel(f"Chain {xj}")
                     elif n_chains == 1 and n_modes > 1:
@@ -166,8 +166,8 @@ def write_summary(model, gt, model_output,
 
     ''' Report error in shifts '''
     if model_output['shifts'] is not None:
-        shift_x =  model_output['shifts'][..., 0, None]
-        shift_y =  model_output['shifts'][..., 1, None]
+        shift_x = model_output['shifts'][..., 0, None]
+        shift_y = model_output['shifts'][..., 1, None]
         writer.add_histogram(f"{summary_prefix}: shift_x values", values=shift_x.reshape(1, -1),
                              global_step=total_steps)
         writer.add_histogram(f"{summary_prefix}: shift_y values", values=shift_y.reshape(1, -1),
