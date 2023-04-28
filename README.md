@@ -26,7 +26,7 @@ There are two submodes for training a model: 1) with simulated data that is gene
 ```
 sbatch -t 1:00:00 scripts/submit_job.sh configs/ak-atomic-primal-sim.ini
 ```
-While the model is training, intermediate results (tensorboard logs, model checkpoints, etc...) are saved under `./logs` with each training run as a subdirectory named after the SLURM job ID (ex. `logs/8007570_0`). Training can be monitored on SDF by running a tensorboard instance pointing to the logs directory.
+While the model is training, intermediate results (tensorboard logs, model checkpoints, etc...) are saved under `./logs` with each training run as a subdirectory named after the SLURM job ID (ex. `logs/8007570_0`). Training can be monitored on SDF by running a tensorboard server pointing to the logs directory.
 ```
 singularity exec -B /sdf /sdf/group/ml/CryoNet/singularity_images/animate_latest.sif tensorboard --logdir=logs/ --port=6007 &
 ```
@@ -38,3 +38,9 @@ sbatch --nodes 2 --gres gpu:geforce_rtx_2080_ti:8 --cpus-per-task=32 -t 24:00:00
 This will run a training run on 16 GPUs with 4 threads per GPU for data IO. Each GPU outputs its own log under `logs/[SLURM_JOB_ID]_{GPU_INDEX}`. Similarily, a training run for the Ribosome can be run using [configs/ribosome-atomic-primal-relion.ini](configs/ribosome-atomic-primal-relion.ini)
 
 ### Evaluation/Inference
+After/During a training run, an evaluation run can be submitted with the provided [scripts/submit_job_eval.sh](scripts/submit_job_eval.sh) script. 
+```
+sbatch -t 06:30:00 -n 16 scripts/submit_job_eval.sh logs/8007570_0/config.ini logs/8007570_0/models/checkpoints/model_current.pt
+```
+This script takes two arguments, the first specifying the training config file, and the second pointing to a specific model checkpoint to load.
+Usually, you'll need to provide the evaluation dataset/starfile, which can be the same as the training starfile.
