@@ -24,7 +24,7 @@ This will generate a dataset under the relative directory `sim-data`, but a full
 ### Training
 There are two submodes for training a model: 1) with simulated data that is generated on-the-fly using NMA (same dynamic model as the reconstructed model), and 2) with data read from relion 3.1 starfiles (like the one simulated above or experimental datasets). An example simulation model training can be run as follows:
 ```
-sbatch -t 1:00:00 --gpus 1 --cpus-per-task 16 scripts/submit_job.sh configs/ak-atomic-primal-sim.ini
+sbatch -t 1:00:00 --gpus 1 scripts/submit_job.sh configs/ak-atomic-primal-sim.ini
 ```
 While the model is training, intermediate results (tensorboard logs, model checkpoints, etc...) are saved under `./logs` with each training run as a subdirectory named after the SLURM job ID (ex. `logs/8007570_0`). Training can be monitored on SDF by running a tensorboard server pointing to the logs directory.
 ```
