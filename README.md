@@ -38,9 +38,27 @@ sbatch --nodes 2 --gres gpu:geforce_rtx_2080_ti:8 --cpus-per-task=32 -t 24:00:00
 This will run a training run on 16 GPUs with 4 threads per GPU for data IO. Each GPU outputs its own log under `logs/[SLURM_JOB_ID]_{GPU_INDEX}`. Similarily, a training run for the Ribosome can be run using [configs/ribosome-atomic-primal-relion.ini](configs/ribosome-atomic-primal-relion.ini)
 
 ### Evaluation/Inference
-After/During a training run, an evaluation run can be submitted with the provided [scripts/submit_job_eval.sh](scripts/submit_job_eval.sh) script. 
+After/During a training run, an evaluation run can be submitted with the provided [scripts/submit_job_eval.sh](scripts/submit_job_eval.sh) script. Example below. 
 ```
-sbatch -t 06:30:00 -n 16 scripts/submit_job_eval.sh logs/8007570_0/config.ini logs/8007570_0/models/checkpoints/model_current.pt
+sbatch -t 02:90:00 -n 16 scripts/submit_job_eval.sh logs/8007570_0/config.ini logs/8007570_0/models/checkpoints/model_current.pt
 ```
 This script takes two arguments, the first specifying the training config file, and the second pointing to a specific model checkpoint to load.
-Usually, you'll need to provide the evaluation dataset/starfile, which can be the same as the training starfile.
+Usually, you'll need to provide the evaluation dataset/starfile, which can be the same as the training starfile. Add or update the `val_relion_star_file` config argument in the config INI file passed to `submit_job_eval.sh` first before running the above command. 
+
+After evaluation is done, a new subdirectory will be created under logs with the format `logs/[SLURM_JOB_ID]` that contain the evaluation output and NMA plots. More visualizations can be generated from the provided Jupyter notebook [notebooks/visualize_predictions.ipynb](notebooks/visualize_predictions.ipynb).
+
+The actual runs/models for the paper with their corresponding job IDs are listed below:
+| Description | SLURM Job ID | Path |
+| ----------- | ----------- | ----------- |
+| Spliceosome, trained on half 1 | 7993005 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7993005_0` |
+| Spliceosome, trained on half 2 | 7997982 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7997982_0` |
+| Spliceosome, trained on full data | 8008310 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8008310_0` |
+| Spliceosome (no-head), trained on half 1 | 8007570 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8007570_0` |
+| Spliceosome (no-head), trained on half 2 | 7992273 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7992273_0` |
+| Spliceosome (no-head), trained on full data | 8019309 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8019309_0` |
+| Ribosome, trained on half 1 | 7964538 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7964538_0` |
+| Ribosome, trained on half 2 | 7971120 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7971120_0` |
+| Ribosome, trained on full data | 8007515 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8007515_0` |
+| Ribosome (no-ES12), trained on half 1 | 8333192 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8333192_0` |
+| Ribosome (no-ES12), trained on half 2 | 8333194 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8333194_0` |
+| Ribosome (no-ES12), trained on full data | 8209068 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8209068_0` |
