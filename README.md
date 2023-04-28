@@ -40,7 +40,7 @@ This will run a training run on 16 GPUs with 4 threads per GPU for data IO. Each
 ### Evaluation/Inference
 After/During a training run, an evaluation run can be submitted with the provided [scripts/submit_job_eval.sh](scripts/submit_job_eval.sh) script. Example below. 
 ```
-sbatch -t 02:00:00 -n 16 scripts/submit_job_eval.sh logs/8007570_0/config.ini logs/8007570_0/models/checkpoints/model_current.pt
+sbatch -t 02:00:00 -n 16 scripts/submit_job_eval.sh logs/8007570_0/config.ini logs/8007570_0/models/checkpoints/model_current.pth
 ```
 This script takes two arguments, the first specifying the training config file, and the second pointing to a specific model checkpoint to load.
 Usually, you'll need to provide the evaluation dataset/starfile, which can be the same as the training starfile. Add or update the `val_relion_star_file` config argument in the config INI file passed to `submit_job_eval.sh` first before running the above command. 
