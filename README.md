@@ -15,6 +15,13 @@ After cloning the code, everything should be run from within the upper directory
 
 
 ### Generating Datasets
-`sbatch -t 1:00:00 scripts/submit_job_generate.sh configs/ak-atomic-primal-sim.ini sim-data`
+In generation mode, the code generates a simulated cryo-EM dataset (particles `.mrcs` files and `.star` relion 3.1 starfile), starting from an atomic model PDB files. The simulation parameters are specified in a config file. An example simulation for Adenylate kinase is included under [configs/ak-atomic-primal-sim.ini](configs/ak-atomic-primal-sim.ini), and can be run on SDF as follows:
+```
+sbatch -t 1:00:00 scripts/submit_job_generate.sh configs/ak-atomic-primal-sim.ini sim-data
+```
+This will generate a dataset under the relative directory `sim-data`, but a fully resolved path can also be passed as the second argument to the SLURM script.
 
-`sbatch -t 1:00:00 scripts/submit_job.sh configs/ak-atomic-primal-sim.ini`
+### Training
+```
+sbatch -t 1:00:00 scripts/submit_job.sh configs/ak-atomic-primal-sim.ini
+```
