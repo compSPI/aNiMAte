@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --partition=ml
-#SBATCH --job-name=cryonet-generate
+#SBATCH --job-name=aNiMAte-generate
 #SBATCH --output=output-%j.txt --error=output-%j.txt
 #SBATCH --nodes=1
 #SBATCH --gpus=a100:1
