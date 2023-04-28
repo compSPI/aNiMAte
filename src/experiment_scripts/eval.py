@@ -221,13 +221,7 @@ def main():
 
     print(f"Launching evaluation for {config.experiment_type}")
     dataset = None
-    if (config.experiment_type == 'exp_simul_proj'):
-        dataset = DensityMapProjectionSimulator(mrc_filepath=config.simul_mrc,
-                                                projection_sz=config.map_shape,
-                                                num_projs=config.val_sz,
-                                                ctf_generator=_ctf_generator(config),
-                                                noise_generator=_noise_generator(config))
-    elif (config.experiment_type == 'exp_relion_reconstruct'):
+    if (config.experiment_type == 'exp_relion_reconstruct'):
         star_file = config.val_relion_star_file if config.val_relion_star_file else config.relion_star_file
         dataset = RelionDataLoader(relion_path=config.relion_path,
                                    relion_star_file=star_file,
@@ -244,7 +238,8 @@ def main():
         config.num_particles = len(dataset)
         config.ctf_size = config.side_len
     elif (config.experiment_type == 'exp_simul_atomic'):
-        dataset = AtomicProjectionSimulator(config, num_projs=config.val_sz,
+        dataset = AtomicProjectionSimulator(config, projection_sz=config.map_shape,
+                                            num_projs=config.val_sz,
                                             ctf_generator=_ctf_generator(config),
                                             noise_generator=_noise_generator(config))
 
