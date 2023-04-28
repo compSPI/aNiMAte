@@ -19,7 +19,7 @@ from main import init_config
 from torch.utils.data import DataLoader
 from tqdm.autonotebook import tqdm
 from cryonet import CryoNet
-from dataio import AtomicProjectionSimulator, DensityMapProjectionSimulator, RelionDataLoader
+from dataio import AtomicProjectionSimulator, RelionDataLoader
 from ctf_utils import CTF
 from noise_utils import AWGNGenerator
 from atomic_utils import AtomicModel

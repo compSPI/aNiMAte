@@ -33,7 +33,7 @@ singularity exec -B /sdf /sdf/group/ml/CryoNet/singularity_images/animate_latest
 #### Reproducing Paper Results
 For large bio-molecules, like the ones in the aNiMAte paper, you'll most likely need to run on multiple GPUs. The atomic models and their corresponding precalculated NMA modes are included in this repo under [data](data). The datasets (starfiles) used in the paper are on already on SDF, so in order to submit a training run for the Spliceosome on the GTX 2080 GPUs, run something like:
 ```
-sbatch --nodes 2 --gres gpu:geforce_rtx_2080_ti:8 --cpus-per-task=32 -t 24:00:00 scripts/submit_job.sh configs/splice-atomic-primal-relion.ini
+sbatch --nodes 2 --gres gpu:geforce_rtx_2080_ti:8 --cpus-per-task 32 -t 24:00:00 scripts/submit_job.sh configs/splice-atomic-primal-relion.ini
 ```
 This will run a training run on 16 GPUs with 4 threads per GPU for data IO. Each GPU outputs its own log under `logs/[SLURM_JOB_ID]_{GPU_INDEX}`. Similarily, a training run for the Ribosome can be run using [configs/ribosome-atomic-primal-relion.ini](configs/ribosome-atomic-primal-relion.ini)
 
