@@ -14,17 +14,17 @@ singularity pull -F docker://slaclab/animate:latest
 After cloning the code, everything should be run from within the upper directory of the code. SDF SLURM job submission are included under [scripts](scripts) and they rely on config files like the ones included under [configs](configs). The config files specify the arguments passed to the three modes the code can run in: 1) Generating datasets (Relion starfiles), 2) Training (from starfiles or simulation), and 3) Evaluation (using a checkpoint after/during training)
 
 
-### Generating Datasets
+### 1- Generating Datasets
 In generation mode, the code generates a simulated cryo-EM dataset (particles `.mrcs` files and `.star` relion 3.1 starfile), starting from an atomic model PDB files. The simulation parameters are specified in a config file. An example simulation for Adenylate kinase is included under [configs/ak-atomic-primal-sim.ini](configs/ak-atomic-primal-sim.ini), and can be run on SDF as follows:
 ```
 sbatch -t 1:00:00 scripts/submit_job_generate.sh configs/ak-atomic-primal-sim.ini sim-data
 ```
 This will generate a dataset under the relative directory `sim-data`, but a fully resolved path can also be passed as the second argument to the SLURM script.
 
-### Training
+### 2- Training
 There are two submodes for training a model: 1) with simulated data that is generated on-the-fly using NMA (same dynamic model as the reconstructed model), and 2) with data read from relion 3.1 starfiles (like the one simulated above or experimental datasets). An example simulation model training can be run as follows:
 ```
-sbatch -t 1:00:00 --gpus 1 --cpus-per-task 16 scripts/submit_job.sh configs/ak-atomic-primal-sim.ini
+sbatch -t 1:00:00 --gpus 1 scripts/submit_job.sh configs/ak-atomic-primal-sim.ini
 ```
 While the model is training, intermediate results (tensorboard logs, model checkpoints, etc...) are saved under `./logs` with each training run as a subdirectory named after the SLURM job ID (ex. `logs/8007570_0`). Training can be monitored on SDF by running a tensorboard server pointing to the logs directory.
 ```
@@ -37,7 +37,7 @@ sbatch --nodes 2 --gres gpu:geforce_rtx_2080_ti:8 --cpus-per-task 32 -t 24:00:00
 ```
 This will run a training run on 16 GPUs with 4 threads per GPU for data IO. Each GPU outputs its own log under `logs/[SLURM_JOB_ID]_{GPU_INDEX}`. Similarily, a training run for the Ribosome can be run using [configs/ribosome-atomic-primal-relion.ini](configs/ribosome-atomic-primal-relion.ini)
 
-### Evaluation/Inference
+### 3- Evaluation/Inference
 After/During a training run, an evaluation run can be submitted with the provided [scripts/submit_job_eval.sh](scripts/submit_job_eval.sh) script. Example below. 
 ```
 sbatch -t 02:00:00 -n 16 scripts/submit_job_eval.sh logs/8007570_0/config.ini logs/8007570_0/models/checkpoints/model_current.pth
