@@ -76,4 +76,4 @@ The actual runs/models for the paper with their corresponding job IDs are listed
 | Ribosome (no-ES12), trained on half 1 | 8333192 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8333192_0` | |
 | Ribosome (no-ES12), trained on half 2 | 8333194 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8333194_0` | |
 | Ribosome (no-ES12), trained on full data | 8209068 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8209068_0` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/8209068_0` |
-| Ribosome (no-ES12), evaluated on full data | | ``/sdf/group/ml/CryoNet/cryonettorch/logs/8209068` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/8209068` |
+| Ribosome (no-ES12), evaluated on full data | | `/sdf/group/ml/CryoNet/cryonettorch/logs/8209068` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/8209068` |
