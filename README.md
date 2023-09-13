@@ -6,13 +6,16 @@ aNiMate is an unsupervised reconstruction approach that eliminates post-hoc atom
 
 Dependencies are listed in [requirements.txt](requirements.txt) and are already incorporated in a Docker/Singularity image that's available on [Dockerhub](https://hub.docker.com/repository/docker/fpoitevi/animate). You can build your own image by editing the [Dockerfile recipe](Dockerfile) provided and running `docker build`. 
 
-aNiMAte has been extensively tested on the SLAC Shared Scientific Data Facility ([SDF](https://sdf.slac.stanford.edu/public/doc/#/)) where the Singularity image is available at `/sdf/group/ml/CryoNet/singularity_images/animate_latest.sif`. To update it:
-```
-cd /sdf/group/ml/CryoNet/singularity_images
-singularity pull -F docker://fpoitevi/animate:latest
-```
+> **SLAC central install**
+> 
+> aNiMAte has been extensively tested at the SLAC Shared Scientific Data Facility ([SDF](https://sdf.slac.stanford.edu/public/doc/#/)) where the Singularity image is available at `/sdf/group/ml/CryoNet/singularity_images/animate_latest.sif`. To update it:
+> ```
+> cd /sdf/group/ml/CryoNet/singularity_images
+> singularity pull -F docker://fpoitevi/animate:latest
+> ```
+
 ## Getting Started
-After cloning the code, everything should be run from within the upper directory of the code. SDF SLURM job submission are included under [scripts](scripts) and they rely on config files like the ones included under [configs](configs). The config files specify the arguments passed to the three modes the code can run in: 1) Generating datasets (Relion starfiles), 2) Training (from starfiles or simulation), and 3) Evaluation (using a checkpoint after/during training)
+After cloning the code, everything should be run from within the upper directory of the code. SDF SLURM job submission are included under [scripts](scripts) and they rely on config files like the ones included under [configs](configs). The config files specify the arguments passed to the three modes the code can run in: 1) Generating datasets (Relion starfiles), 2) Training (from starfiles or simulation), and 3) Evaluation (using a checkpoint after/during training).
 
 
 ### 1- Generating Datasets
@@ -46,20 +49,31 @@ sbatch -t 02:00:00 -n 16 scripts/submit_job_eval.sh logs/8007570_0/config.ini lo
 This script takes two arguments, the first specifying the training config file, and the second pointing to a specific model checkpoint to load.
 Usually, you'll need to provide the evaluation dataset/starfile, which can be the same as the training starfile. Add or update the `val_relion_star_file` config argument in the config INI file passed to `submit_job_eval.sh` first before running the above command. 
 
-After evaluation is done, a new subdirectory will be created under logs with the format `logs/[SLURM_JOB_ID]` that contain the evaluation output and NMA plots. More visualizations can be generated from the provided Jupyter notebook [notebooks/visualize_predictions.ipynb](notebooks/visualize_predictions.ipynb).
+After evaluation is done, a new subdirectory will be created under logs with the format `logs/[SLURM_JOB_ID]` that contain the evaluation output and NMA plots. More visualizations can be generated from the provided Jupyter notebook [notebooks/inspect_predictions.ipynb](notebooks/inspect_predictions.ipynb). Furthermore, a notebook is provided to evaluate the "Delta" score described in the paper: [notebooks/evaluate_delta_scores.ipynb](notebooks/evaluate_delta_scores.ipynb). 
 
-The actual runs/models for the paper with their corresponding job IDs are listed below:
-| Description | SLURM Job ID | Path |
-| ----------- | ----------- | ----------- |
-| Spliceosome, trained on half 1 | 7993005 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7993005_0` |
-| Spliceosome, trained on half 2 | 7997982 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7997982_0` |
-| Spliceosome, trained on full data | 8008310 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8008310_0` |
-| Spliceosome (no-head), trained on half 1 | 8007570 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8007570_0` |
-| Spliceosome (no-head), trained on half 2 | 7992273 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7992273_0` |
-| Spliceosome (no-head), trained on full data | 8019309 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8019309_0` |
-| Ribosome, trained on half 1 | 7964538 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7964538_0` |
-| Ribosome, trained on half 2 | 7971120 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7971120_0` |
-| Ribosome, trained on full data | 8007515 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8007515_0` |
-| Ribosome (no-ES12), trained on half 1 | 8333192 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8333192_0` |
-| Ribosome (no-ES12), trained on half 2 | 8333194 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8333194_0` |
-| Ribosome (no-ES12), trained on full data | 8209068 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8209068_0` |
+#### Accessing Paper Results
+
+The actual runs/models for the paper with their corresponding job IDs are listed below. They can be accessed on SDF or downloaded from Google Drive mirroring `/sdf/group/ml/CryoNet/aNiMAte/publication` which can be found at [https://bit.ly/aNiMAte_data](https://bit.ly/aNiMAte_data). In that Google Drive directory, each subdirectory corresponds to one dataset which in turn contains 3 directories: configs/, data/ and logs/ which respectively contain the input config and data files as well as the curated output files.
+
+| Description | SLURM Job ID | original SDF Path | curated SDF Path |
+| ----------- | ----------- | ----------- | ----------- |
+| Spliceosome, trained on half 1 | 7993005 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7993005_0` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10180/logs/7993005_0` |
+| spliceosome, evaluated on half 1 | | `/sdf/group/ml/CryoNet/cryonettorch/logs/7993005` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10180/logs/7993005` |
+| Spliceosome, trained on half 2 | 7997982 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7997982_0` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10180/logs/7997982_0` |
+| Spliceosome, evaluated on half 2 | | `/sdf/group/ml/CryoNet/cryonettorch/logs/7997982` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10180/logs/7997982` |
+| Spliceosome, trained on full data | 8008310 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8008310_0` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10180/logs/8008310_0` |
+| Spliceosome, evaluated on full data | | `/sdf/group/ml/CryoNet/cryonettorch/logs/8008310` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10180/logs/8008310` |
+| Spliceosome (no-head), trained on half 1 | 8007570 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8007570_0` | |
+| Spliceosome (no-head), trained on half 2 | 7992273 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7992273_0` | |
+| Spliceosome (no-head), trained on full data | 8019309 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8019309_0` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10180/logs/8019309_0`|
+| Spliceosome (no-head), evaluated on full data | | `/sdf/group/ml/CryoNet/cryonettorch/logs/8019309` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10180/logs/8019309` |
+| Ribosome, trained on half 1 | 10438442 | `/sdf/group/ml/CryoNet/aNiMAte/logs/10438442_0` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/10438442_0` |
+| Ribosome, evaluated on half 1 | | `/sdf/group/ml/CryoNet/aNiMAte/logs/10438442` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/10438442` |
+| Ribosome, trained on half 2 | 7971120 | `/sdf/group/ml/CryoNet/cryonettorch/logs/7971120_0` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/7971120_0` |
+| Ribosome, evaluated on half 2 | | `/sdf/group/ml/CryoNet/cryonettorch/logs/7971120` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/7971120` |
+| Ribosome, trained on full data | 8007515 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8007515_0` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/8007515_0` |
+| Ribosome, evaluated on full data | | `/sdf/group/ml/CryoNet/cryonettorch/logs/8007515` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/8007515` |
+| Ribosome (no-ES12), trained on half 1 | 8333192 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8333192_0` | |
+| Ribosome (no-ES12), trained on half 2 | 8333194 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8333194_0` | |
+| Ribosome (no-ES12), trained on full data | 8209068 | `/sdf/group/ml/CryoNet/cryonettorch/logs/8209068_0` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/8209068_0` |
+| Ribosome (no-ES12), evaluated on full data | | ``/sdf/group/ml/CryoNet/cryonettorch/logs/8209068` | `/sdf/group/ml/CryoNet/aNiMAte/publication/empiar10028/logs/8209068` |
